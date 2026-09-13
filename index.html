@@ -106,6 +106,13 @@
   .f input:focus,.f select:focus,.f textarea:focus{outline:2px solid var(--teal-2);border-color:transparent}
   .other{margin-top:6px;display:none}
   .other.show{display:block}
+  .sug{display:none;margin-top:6px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 4px 12px rgba(16,24,40,.08)}
+  .sug.show{display:block}
+  .sug button{display:block;width:100%;text-align:left;border:0;background:#fff;padding:10px 12px;border-bottom:1px solid var(--line)}
+  .sug button:active{background:var(--teal-soft)}
+  .sug button:last-child{border-bottom:0}
+  .sug b{display:block;font-size:14px}
+  .sug span{font-size:12px;color:var(--muted)}
   .seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#FBFCFC}
   .seg button{flex:1;border:0;background:transparent;padding:11px 6px;font-weight:700;color:var(--muted)}
   .seg button+button{border-left:1px solid var(--line)}
@@ -220,9 +227,9 @@
   <div class="grab"></div>
   <h3 id="fTitle">Hasta ekle</h3>
   <div class="f"><label for="fDate">Ameliyat tarihi</label><input type="date" id="fDate"></div>
-  <div class="f"><label for="fAd">Adı soyadı</label><input id="fAd" autocomplete="off" placeholder="Adı Soyadı"></div>
+  <div class="f"><label for="fAd">Adı soyadı</label><input id="fAd" autocomplete="off" placeholder="Adı Soyadı"><div class="sug" id="sugAd"></div></div>
   <div class="row2">
-    <div class="f"><label for="fTc">TC kimlik no</label><input id="fTc" inputmode="numeric" maxlength="11" autocomplete="off" placeholder="11 hane"></div>
+    <div class="f"><label for="fTc">TC kimlik no</label><input id="fTc" inputmode="numeric" maxlength="11" autocomplete="off" placeholder="11 hane"><div class="sug" id="sugTc"></div></div>
     <div class="f"><label for="fTel">Telefon</label><input id="fTel" inputmode="tel" autocomplete="off" placeholder="05__ ___ __ __"></div>
   </div>
   <div class="row2">
@@ -241,6 +248,11 @@
     <select id="fCerSel"></select>
     <input id="fCerOther" class="other" autocomplete="off" placeholder="Cerrahiyi elle yazın">
   </div>
+  <div class="f"><label for="fCer2Sel">2. cerrahi (isteğe bağlı)</label>
+    <select id="fCer2Sel"></select>
+    <input id="fCer2Other" class="other" autocomplete="off" placeholder="İkinci cerrahiyi elle yazın">
+  </div>
+  <div class="f"><label for="fNot">Not (isteğe bağlı)</label><input id="fNot" autocomplete="off" placeholder="örn. temporal kesi"></div>
   <div class="iol" id="iolBlock">
     <h4>Göz içi lens (GİL)</h4>
     <div class="row2">
@@ -295,7 +307,7 @@
     'Katarakt':['Katarakt','Katarakt + PEX','Travmatik katarakt','Pediatrik katarakt','GİL dislokasyonu / subluksasyonu','Afaki']
   };
   var CER={
-    'Oküler Onkoloji':['I-125 plak brakiterapi','Transpupiller termoterapi (TTT)','İİAB (ince iğne aspirasyon biyopsisi)','İnsizyonel biyopsi','Eksizyonel biyopsi','Konjonktiva tümörü eksizyonu + kriyoterapi','Konj. tümör eksizyonu + kriyo + amniyon membran','Haritalama (map) biyopsisi','GAAM (genel anestezi altında muayene)','GAAM + kriyoterapi','GAAM + lazer (TTT / fotokoagülasyon)','GAAM + İVit Topotecan 100 mcg','GAAM + İVit Melphalan 20 mcg','Enükleasyon + orbital implant','Evisserasyon + orbital implant','Ekzenterasyon'],
+    'Oküler Onkoloji':['I-125 plak brakiterapi','I-125 plak çıkarılması','Transpupiller termoterapi (TTT)','İİAB (ince iğne aspirasyon biyopsisi)','İnsizyonel biyopsi','Eksizyonel biyopsi','Konjonktiva tümörü eksizyonu + kriyoterapi','Konj. tümör eksizyonu + kriyo + amniyon membran','Haritalama (map) biyopsisi','GAAM (genel anestezi altında muayene)','GAAM + kriyoterapi','GAAM + lazer (TTT / fotokoagülasyon)','GAAM + İVit Topotecan 100 mcg','GAAM + İVit Melphalan 20 mcg','Enükleasyon + orbital implant','Evisserasyon + orbital implant','Ekzenterasyon'],
     'Oküloplastik':['Levator rezeksiyonu','Müller kası rezeksiyonu (MMCR)','Frontal askı','Üst blefaroplasti','Alt blefaroplasti','Entropiyon onarımı','Ektropiyon onarımı (lateral tarsal strip)','Kapak tümörü eksizyonu + primer onarım','Kapak tümörü eksizyonu + kriyoterapi','Kapak eksizyonu + rekonstrüksiyon (Tenzel flebi)','Kapak eksizyonu + rekonstrüksiyon (Hughes flebi)','Kapak eksizyonu + rekonstrüksiyon (Cutler-Beard)','Kapak eksizyonu + rekonstrüksiyon (Mustarde yanak flebi)','Kapak eksizyonu + tam kat cilt grefti','Tarsorafi','Eksternal DCR','Endoskopik DCR','Bikanaliküler silikon tüp entübasyonu','Probing','Kanalikül onarımı','Şalazyon eksizyonu','Orbitotomi (kitle eksizyonu)','Orbita kırığı onarımı','Soket rekonstrüksiyonu + dermis yağ grefti','Sekonder orbital implant'],
     'Katarakt':['Fako + GİL','Fako + GİL + kapsül germe halkası','Sekonder GİL implantasyonu','GİL değişimi','Skleral fiksasyonlu GİL (Yamane)','Pediatrik lensektomi + ön vitrektomi']
   };
@@ -392,6 +404,7 @@
   function fmtDay(d){return d.toLocaleDateString('tr-TR',{weekday:'long'});}
   function fmtChip(d){return d.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});}
   function isToday(d){var t=new Date();t.setHours(0,0,0,0);return dk(d)===dk(t);}
+  function cerText(p){return p.cer+(p.cer2?' & '+p.cer2:'');}
   function iolText(p){
     if(!p.iol)return '';
     var a=[];
@@ -436,8 +449,9 @@
       +'<div class="num">'+(i+1)+'</div>'
       +'<div class="body">'
         +'<div class="name">'+esc(p.ad)+(p.tc?'<span class="pno">TC '+esc(p.tc)+'</span>':'')+'</div>'
-        +'<div class="l2">'+(p.goz?'<span class="eye">'+esc(p.goz)+'</span> · ':'')+esc(p.tani)+'<span class="cer"> · '+esc(p.cer)+'</span></div>'
+        +'<div class="l2">'+(p.goz?'<span class="eye">'+esc(p.goz)+'</span> · ':'')+esc(p.tani)+'<span class="cer"> · '+esc(cerText(p))+'</span></div>'
         +(iol?'<div class="l2b"><b>GİL</b> '+esc(iol)+'</div>':'')
+        +(p.not?'<div class="l2b"><b>Not</b> '+esc(p.not)+'</div>':'')
         +'<div class="l3"><span>Asistan <b>'+esc(p.asis||'—')+'</b></span>'+(p.tel?'<span>Tel <b>'+esc(p.tel)+'</b></span>':'')+'</div>'
       +'</div>'
       +'<div class="side"><span class="chip '+an+'">'+esc(p.an)+'</span>'
@@ -451,7 +465,7 @@
     var cols='<tr><th class="c">No</th><th>Adı Soyadı</th><th>TC Kimlik No</th><th>Telefon</th><th class="c">Göz</th><th>Tanı</th><th>Cerrahi</th><th>Anestezi</th><th>Asistan</th></tr>';
     var rows=L.length?L.map(function(p,i){
       var iol=iolText(p);
-      return '<tr><td class="c">'+(i+1)+'</td><td>'+esc(p.ad)+'</td><td>'+esc(p.tc)+'</td><td>'+esc(p.tel)+'</td><td class="c">'+esc(p.goz)+'</td><td>'+esc(p.tani)+'</td><td>'+esc(p.cer)+(iol?'<div class="gil">GİL: '+esc(iol)+'</div>':'')+'</td><td>'+esc(p.an)+'</td><td>'+esc(p.asis)+'</td></tr>';
+      return '<tr><td class="c">'+(i+1)+'</td><td>'+esc(p.ad)+'</td><td>'+esc(p.tc)+'</td><td>'+esc(p.tel)+'</td><td class="c">'+esc(p.goz)+'</td><td>'+esc(p.tani)+'</td><td>'+esc(cerText(p))+(iol?'<div class="gil">GİL: '+esc(iol)+'</div>':'')+(p.not?'<div class="gil">Not: '+esc(p.not)+'</div>':'')+'</td><td>'+esc(p.an)+'</td><td>'+esc(p.asis)+'</td></tr>';
     }).join(''):'<tr><td colspan="9" class="none">Hasta yok</td></tr>';
     return '<div class="paper">'
       +'<div class="paperbar noprint"><span>Yazdırma düzeni (A4 yatay)</span><button class="btn sec sm" id="btnPrint" type="button">Yazdır / PDF</button></div>'
@@ -495,8 +509,8 @@
   }
 
   var editId=null,fAn='Lokal',fGoz='',fTip='Monofokal',delArmed=false;
-  function groupOpts(groups,cur){
-    var found=false,h='<option value="">Seçin…</option>';
+  function groupOpts(groups,cur,ph){
+    var found=false,h='<option value="">'+(ph||'Seçin…')+'</option>';
     Object.keys(groups).forEach(function(g){
       h+='<optgroup label="'+esc(g)+'">'+groups[g].map(function(x){
         if(x===cur)found=true;
@@ -516,7 +530,7 @@
     $(otherId).classList.toggle('show',$(selId).value===OTHER);
   }
   function inKatarakt(){
-    return CER['Katarakt'].indexOf($('fCerSel').value)>=0||TANI['Katarakt'].indexOf($('fTaniSel').value)>=0;
+    return CER['Katarakt'].indexOf($('fCerSel').value)>=0||CER['Katarakt'].indexOf($('fCer2Sel').value)>=0||TANI['Katarakt'].indexOf($('fTaniSel').value)>=0;
   }
   function syncIol(){$('iolBlock').classList.toggle('show',inKatarakt());}
   function findRec(id){
@@ -531,9 +545,10 @@
     fTip=(p&&p.iol&&p.iol.tip)||'Monofokal';
     $('fTitle').textContent=p?'Hastayı düzenle':'Hasta ekle';
     $('fDate').value=f?f.key:dk(S.date);
-    $('fAd').value=p?p.ad:'';$('fTc').value=p?p.tc:'';$('fTel').value=p?p.tel:'';
+    $('fAd').value=p?p.ad:'';$('fTc').value=p?p.tc:'';$('fTel').value=p?p.tel:'';$('fNot').value=p?(p.not||''):'';
     var t=groupOpts(TANI,p?p.tani:'');$('fTaniSel').innerHTML=t.html;$('fTaniOther').value=t.other;
     var c=groupOpts(CER,p?p.cer:'');$('fCerSel').innerHTML=c.html;$('fCerOther').value=c.other;
+    var c2=groupOpts(CER,p?(p.cer2||''):'','—');$('fCer2Sel').innerHTML=c2.html;$('fCer2Other').value=c2.other;
     var m=flatOpts(MARKA,(p&&p.iol)?(p.iol.marka||''):'');$('fMarka').innerHTML=m.html;$('fMarkaOther').value=m.other;
     var a=flatOpts(S.asistanlar,p?(p.asis||''):'');$('fAsis').innerHTML=a.html;$('fAsisOther').value=a.other;
     $('fDio').value=(p&&p.iol)?(p.iol.dio||''):'';
@@ -541,8 +556,9 @@
     $('fTcyl').value=(p&&p.iol)?(p.iol.tcyl||''):'';
     $('fAks').value=(p&&p.iol)?(p.iol.aks||''):'';
     $('torRow').style.display=$('fTorik').checked?'':'none';
-    syncOther('fTaniSel','fTaniOther');syncOther('fCerSel','fCerOther');
+    syncOther('fTaniSel','fTaniOther');syncOther('fCerSel','fCerOther');syncOther('fCer2Sel','fCer2Other');
     syncOther('fMarka','fMarkaOther');syncOther('fAsis','fAsisOther');
+    hideSugs();
     syncIol();
     delArmed=false;$('fDel').classList.remove('armed');$('fDel').textContent='Sil';$('fDel').style.display=p?'':'none';
     renderSeg();openSheet('sheetForm');
@@ -560,8 +576,53 @@
   $('fTorik').onchange=function(){$('torRow').style.display=this.checked?'':'none';if(this.checked)$('fTcyl').focus();};
   $('fTaniSel').onchange=function(){syncOther('fTaniSel','fTaniOther');syncIol();if(this.value===OTHER)$('fTaniOther').focus();};
   $('fCerSel').onchange=function(){syncOther('fCerSel','fCerOther');syncIol();if(this.value===OTHER)$('fCerOther').focus();};
+  $('fCer2Sel').onchange=function(){syncOther('fCer2Sel','fCer2Other');syncIol();if(this.value===OTHER)$('fCer2Other').focus();};
   $('fMarka').onchange=function(){syncOther('fMarka','fMarkaOther');if(this.value===OTHER)$('fMarkaOther').focus();};
   $('fAsis').onchange=function(){syncOther('fAsis','fAsisOther');if(this.value===OTHER)$('fAsisOther').focus();};
+  function trLower(s){return String(s||'').toLocaleLowerCase('tr-TR');}
+  function fmtTel(d){var g=[d.slice(0,4),d.slice(4,7),d.slice(7,9),d.slice(9,11)];var o=[];for(var i=0;i<g.length;i++)if(g[i])o.push(g[i]);return o.join(' ');}
+  $('fTel').addEventListener('input',function(){var d=this.value.replace(/\D/g,'').slice(0,11);this.value=fmtTel(d);});
+  function hideSugs(){['sugAd','sugTc'].forEach(function(id){$(id).classList.remove('show');$(id).innerHTML='';});}
+  function findMatches(q,byTc){
+    q=String(q||'').trim();if(q.length<3)return [];
+    var seen={},out=[],keys=Object.keys(S.data).sort().reverse();
+    for(var i=0;i<keys.length;i++){var L=S.data[keys[i]];
+      for(var j=L.length-1;j>=0;j--){var r=L[j];
+        var hit=byTc?(r.tc&&r.tc.indexOf(q)===0):(trLower(r.ad).indexOf(trLower(q))===0);
+        if(hit){var k=r.tc||trLower(r.ad);
+          if(!seen[k]){seen[k]=1;out.push({key:keys[i],rec:r});if(out.length>=3)return out;}}}}
+    return out;
+  }
+  function fmtShortK(k){return fromKey(k).toLocaleDateString('tr-TR');}
+  function renderSug(boxId,items){
+    var b=$(boxId);
+    if(!items.length){b.classList.remove('show');b.innerHTML='';return;}
+    b.innerHTML=items.map(function(x){
+      return '<button type="button" data-sid="'+x.rec.id+'"><b>'+esc(x.rec.ad)+'</b><span>'
+        +esc((x.rec.tc?'TC '+x.rec.tc+' · ':'')+(x.rec.goz?x.rec.goz+' ':'')+x.rec.tani+' · '+fmtShortK(x.key))+'</span></button>';
+    }).join('');
+    b.classList.add('show');
+  }
+  function fillFrom(id){
+    var f=findRec(id);if(!f)return;var p=f.rec;
+    $('fAd').value=p.ad;$('fTc').value=p.tc||'';$('fTel').value=p.tel||'';$('fNot').value=p.not||'';
+    fAn=p.an||'Lokal';fGoz='';fTip=(p.iol&&p.iol.tip)||'Monofokal';
+    var t=groupOpts(TANI,p.tani);$('fTaniSel').innerHTML=t.html;$('fTaniOther').value=t.other;
+    var c=groupOpts(CER,p.cer);$('fCerSel').innerHTML=c.html;$('fCerOther').value=c.other;
+    var c2=groupOpts(CER,p.cer2||'','—');$('fCer2Sel').innerHTML=c2.html;$('fCer2Other').value=c2.other;
+    var m=flatOpts(MARKA,(p.iol&&p.iol.marka)||'');$('fMarka').innerHTML=m.html;$('fMarkaOther').value=m.other;
+    var a=flatOpts(S.asistanlar,p.asis||'');$('fAsis').innerHTML=a.html;$('fAsisOther').value=a.other;
+    $('fDio').value=(p.iol&&p.iol.dio)||'';$('fTorik').checked=!!(p.iol&&p.iol.torik);
+    $('fTcyl').value=(p.iol&&p.iol.tcyl)||'';$('fAks').value=(p.iol&&p.iol.aks)||'';
+    $('torRow').style.display=$('fTorik').checked?'':'none';
+    syncOther('fTaniSel','fTaniOther');syncOther('fCerSel','fCerOther');syncOther('fCer2Sel','fCer2Other');
+    syncOther('fMarka','fMarkaOther');syncOther('fAsis','fAsisOther');
+    syncIol();renderSeg();hideSugs();
+    toast('Önceki kayıttan kopyalandı — göz tarafını seçin');
+  }
+  $('fAd').addEventListener('input',function(){if(editId!=null){hideSugs();return;}renderSug('sugAd',findMatches(this.value,false));});
+  $('fTc').addEventListener('input',function(){if(editId!=null){hideSugs();return;}renderSug('sugTc',findMatches(this.value.replace(/\D/g,''),true));});
+  $('sugAd').onclick=$('sugTc').onclick=function(e){var b=e.target.closest('[data-sid]');if(b)fillFrom(+b.getAttribute('data-sid'));};
   function pick(selId,otherId){
     var v=$(selId).value;
     if(v===OTHER)return $(otherId).value.trim();
@@ -577,6 +638,7 @@
     if(!tani){toast('Tanı seçin veya yazın');return;}
     var cer=pick('fCerSel','fCerOther');
     if(!cer){toast('Cerrahi seçin veya yazın');return;}
+    var cer2=pick('fCer2Sel','fCer2Other');if(cer2===cer)cer2='';
     var tc=$('fTc').value.replace(/\D/g,'');
     if(tc&&tc.length!==11){$('fTc').focus();toast('TC kimlik 11 haneli olmalı');return;}
     var iol=null;
@@ -588,7 +650,7 @@
       iol={dio:$('fDio').value.trim(),tip:fTip,marka:pick('fMarka','fMarkaOther'),torik:torik,tcyl:tcyl,aks:aks};
     }
     var d=fromKey(dstr);
-    var rec={ad:ad,tc:tc,tel:$('fTel').value.trim(),goz:fGoz,tani:tani,cer:cer,an:fAn,hoca:HEKIM,asis:pick('fAsis','fAsisOther'),iol:iol};
+    var rec={ad:ad,tc:tc,tel:$('fTel').value.trim(),goz:fGoz,tani:tani,cer:cer,cer2:cer2,not:$('fNot').value.trim(),an:fAn,hoca:HEKIM,asis:pick('fAsis','fAsisOther'),iol:iol};
     var msg,oldKey=null;
     if(editId!=null){
       var f=findRec(editId);
@@ -638,7 +700,7 @@
     doc.text(fmtLong(S.date)+' '+fmtDay(S.date),148.5,20,{align:'center'});
     var body=L.map(function(p,i){
       var iol=iolText(p);
-      return [String(i+1),p.ad,p.tc||'',p.tel||'',p.goz||'',p.tani,p.cer+(iol?'\nGİL: '+iol:''),p.an,p.asis||''];
+      return [String(i+1),p.ad,p.tc||'',p.tel||'',p.goz||'',p.tani,cerText(p)+(iol?'\nGİL: '+iol:'')+(p.not?'\nNot: '+p.not:''),p.an,p.asis||''];
     });
     if(!body.length)body=[['','Hasta yok','','','','','','','']];
     doc.autoTable({
