@@ -113,6 +113,14 @@
   .sug button:last-child{border-bottom:0}
   .sug b{display:block;font-size:14px}
   .sug span{font-size:12px;color:var(--muted)}
+  details.set{border:1px solid var(--line);border-radius:12px;margin:0 0 10px;background:#FBFCFC;overflow:hidden}
+  details.set summary{padding:12px 14px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  details.set summary::-webkit-details-marker{display:none}
+  details.set summary::after{content:'▾';color:var(--muted)}
+  details.set[open] summary::after{content:'▴'}
+  details.set .in{padding:0 12px 12px}
+  details.set .in label{font-size:12px;font-weight:600;color:var(--muted);display:block;margin:10px 0 4px}
+  details.set .in textarea{border:1px solid var(--line);border-radius:10px;padding:10px;width:100%;background:#fff;font-size:15px;line-height:1.5}
   .seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#FBFCFC}
   .seg button{flex:1;border:0;background:transparent;padding:11px 6px;font-weight:700;color:var(--muted)}
   .seg button+button{border-left:1px solid var(--line)}
@@ -122,6 +130,10 @@
   .iol{background:var(--teal-soft);border-radius:12px;padding:12px 12px 2px;margin-bottom:12px;display:none}
   .iol.show{display:block}
   .iol h4{margin:0 0 10px;font-size:13.5px;color:var(--teal);letter-spacing:.2px}
+  .dio{display:flex;gap:8px;align-items:stretch}
+  .dio .seg{flex:0 0 96px}
+  .dio .seg button{font-size:18px;padding:8px 4px}
+  .dio input{flex:1;min-width:0}
   .tor{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-weight:700;color:var(--ink);cursor:pointer}
   .tor input{width:20px;height:20px;accent-color:var(--teal-2);margin:0}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -132,6 +144,20 @@
   .btn.sec{background:#EAEFEE;color:var(--ink)}
   .btn.dan{background:var(--danger-bg);color:var(--danger);flex:0 0 auto}
   .btn.dan.armed{background:var(--danger);color:#fff}
+  .calhdr{display:flex;align-items:center;justify-content:space-between;margin:2px 0 12px}
+  .calhdr b{font-size:17px}
+  .iconbtn.cal{background:#EAEFEE;color:var(--ink)}
+  .cal7{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .cal7.wd{margin-bottom:6px}
+  .cal7.wd span{text-align:center;font-size:11.5px;font-weight:700;color:var(--muted)}
+  .cald{position:relative;aspect-ratio:1;border:0;border-radius:10px;background:#F2F5F4;display:flex;align-items:center;justify-content:center;padding:0}
+  .cald:active{background:var(--teal-soft)}
+  .cald .dn{font-weight:600;font-size:15px;font-variant-numeric:tabular-nums}
+  .cald.today{box-shadow:inset 0 0 0 2px var(--teal-2)}
+  .cald.sel{background:var(--teal);color:#fff}
+  .cald .cnt{position:absolute;right:3px;top:3px;background:var(--genel);color:#fff;border-radius:999px;font-size:10px;font-weight:800;min-width:16px;height:16px;line-height:16px;text-align:center;padding:0 3px}
+  .cald.sel .cnt{background:#fff;color:var(--teal)}
+  #sheetCal .btns{margin-top:14px}
   .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(16px);background:#152026;color:#fff;padding:9px 14px;border-radius:999px;font-size:13.5px;opacity:0;transition:.2s;z-index:110;pointer-events:none;white-space:nowrap}
   .toast.show{opacity:1;transform:translateX(-50%)}
 
@@ -190,7 +216,7 @@
 <div class="app">
   <header class="hdr">
     <div class="hdr-top">
-      <div class="brand"><b>Ameliyat Listem</b><span>Doç. Dr. Hidayet Şener · Göz Hastalıkları</span></div>
+      <div class="brand"><b>Ameliyat Listem</b><span id="brandSub">Doç. Dr. Hidayet Şener · Göz Hastalıkları</span></div>
       <div class="tools">
         <button class="iconbtn" id="btnView" title="Tablo görünümü" aria-label="Tablo görünümü">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/></svg>
@@ -256,7 +282,9 @@
   <div class="iol" id="iolBlock">
     <h4>Göz içi lens (GİL)</h4>
     <div class="row2">
-      <div class="f"><label for="fDio">Diyoptri</label><input id="fDio" inputmode="decimal" autocomplete="off" placeholder="örn. +21.5"></div>
+      <div class="f"><label for="fDio">Diyoptri</label>
+        <div class="dio"><div class="seg sgn" id="sgnDio"><button type="button" data-v="+">+</button><button type="button" data-v="-">−</button></div><input id="fDio" inputmode="decimal" autocomplete="off" placeholder="21.5"></div>
+      </div>
       <div class="f"><label for="fMarka">Marka</label>
         <select id="fMarka"></select>
         <input id="fMarkaOther" class="other" autocomplete="off" placeholder="Markayı elle yazın">
@@ -267,7 +295,9 @@
     </div>
     <label class="tor"><input type="checkbox" id="fTorik"><span>Torik</span></label>
     <div class="row2" id="torRow" style="display:none">
-      <div class="f"><label for="fTcyl">Torik diyoptri</label><input id="fTcyl" inputmode="decimal" autocomplete="off" placeholder="örn. +1.5"></div>
+      <div class="f"><label for="fTcyl">Torik diyoptri</label>
+        <div class="dio"><div class="seg sgn" id="sgnTcyl"><button type="button" data-v="+">+</button><button type="button" data-v="-">−</button></div><input id="fTcyl" inputmode="decimal" autocomplete="off" placeholder="1.5"></div>
+      </div>
       <div class="f"><label for="fAks">Aks (°)</label><input id="fAks" inputmode="numeric" maxlength="3" autocomplete="off" placeholder="0–180"></div>
     </div>
   </div>
@@ -282,11 +312,38 @@
   </div>
 </div>
 
+<div class="sheet" id="sheetCal" role="dialog" aria-modal="true" aria-label="Takvim">
+  <div class="grab"></div>
+  <div class="calhdr">
+    <button class="iconbtn cal" id="calPrev" aria-label="Önceki ay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <b id="calTitle"></b>
+    <button class="iconbtn cal" id="calNext" aria-label="Sonraki ay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+  <div class="cal7 wd"><span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span></div>
+  <div class="cal7" id="calGrid"></div>
+  <div class="btns">
+    <button class="btn sec" id="calToday" type="button">Bugüne dön</button>
+    <button class="btn pri" id="calClose" type="button">Kapat</button>
+  </div>
+</div>
+
 <div class="sheet" id="sheetSettings" role="dialog" aria-modal="true" aria-labelledby="sTitle">
   <div class="grab"></div>
   <h3 id="sTitle">Ayarlar</h3>
-  <p class="hint">Asistan harf kodları — her satıra bir kod; formdaki menü bu listeden dolar.</p>
-  <div class="f"><textarea id="sAsis" rows="8" aria-label="Asistan harf kodları"></textarea></div>
+  <div class="f"><label for="sUnvan">Başlık — üst bar, tablo ve PDF başlığında görünür</label><input id="sUnvan" autocomplete="off" placeholder="Doç. Dr. Hidayet Şener"></div>
+  <details class="set"><summary>Asistan kodları</summary><div class="in"><textarea id="sAsis" rows="7" aria-label="Asistan harf kodları"></textarea></div></details>
+  <details class="set"><summary>Tanı listeleri</summary><div class="in">
+    <label>Oküler Onkoloji</label><textarea id="sTaniOnk" rows="6"></textarea>
+    <label>Oküloplastik</label><textarea id="sTaniPla" rows="6"></textarea>
+    <label>Katarakt</label><textarea id="sTaniKat" rows="4"></textarea>
+  </div></details>
+  <details class="set"><summary>Cerrahi listeleri</summary><div class="in">
+    <label>Oküler Onkoloji</label><textarea id="sCerOnk" rows="6"></textarea>
+    <label>Oküloplastik</label><textarea id="sCerPla" rows="6"></textarea>
+    <label>Katarakt</label><textarea id="sCerKat" rows="4"></textarea>
+  </div></details>
+  <details class="set"><summary>GİL markaları</summary><div class="in"><textarea id="sMarka" rows="4"></textarea></div></details>
+  <p class="hint" style="margin:2px 0 10px">Her satıra bir madde. Kaydedince hesabınıza yazılır; GitHub gerekmez.</p>
   <div class="btns">
     <button class="btn sec" id="sCancel" type="button">Vazgeç</button>
     <button class="btn pri" id="sSave" type="button">Kaydet</button>
@@ -345,7 +402,12 @@
         var m=res[1].data();
         if(m.asistanlar&&m.asistanlar.length)S.asistanlar=m.asistanlar;
         if(m.seq)seq=m.seq;
+        if(m.unvan)HEKIM=m.unvan;
+        if(m.tani)Object.keys(TANI).forEach(function(g){if(m.tani[g]&&m.tani[g].length)TANI[g]=m.tani[g];});
+        if(m.cer)Object.keys(CER).forEach(function(g){if(m.cer[g]&&m.cer[g].length)CER[g]=m.cer[g];});
+        if(m.marka&&m.marka.length)MARKA=m.marka;
       }
+      applyUnvan();
       render();
     }).catch(function(e){toast('Veriler yüklenemedi');render();});
   }
@@ -357,8 +419,9 @@
   }
   function saveMeta(){
     if(!UID)return;
-    metaRef().set({asistanlar:S.asistanlar,seq:seq}).catch(function(){});
+    metaRef().set({asistanlar:S.asistanlar,seq:seq,unvan:HEKIM,tani:TANI,cer:CER,marka:MARKA}).catch(function(){});
   }
+  function applyUnvan(){var b=document.getElementById('brandSub');if(b)b.textContent=HEKIM+' · Göz Hastalıkları';}
 
   /* ---- giriş ---- */
   function trErr(e){
@@ -476,12 +539,30 @@
   function goTo(d){d.setHours(0,0,0,0);S.date=d;render();}
   $('prev').onclick=function(){goTo(plus(-1));};
   $('next').onclick=function(){goTo(plus(1));};
-  $('dateLabel').onclick=function(){
-    var dp=$('datePick');
-    if(dp.showPicker){try{dp.showPicker();return;}catch(e){}}
-    goTo(new Date());
-  };
-  $('datePick').onchange=function(){if(this.value)goTo(fromKey(this.value));};
+  var calY=0,calM=0;
+  var AYLAR=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  function openCal(){calY=S.date.getFullYear();calM=S.date.getMonth();renderCal();openSheet('sheetCal');}
+  function renderCal(){
+    $('calTitle').textContent=AYLAR[calM]+' '+calY;
+    var first=new Date(calY,calM,1);
+    var off=(first.getDay()+6)%7;
+    var dim=new Date(calY,calM+1,0).getDate();
+    var t=new Date();t.setHours(0,0,0,0);var tk=dk(t),sk=dk(S.date);
+    var cells=[];
+    for(var b=0;b<off;b++)cells.push('<span></span>');
+    for(var d=1;d<=dim;d++){
+      var k=dk(new Date(calY,calM,d));
+      var n=(S.data[k]||[]).length;
+      cells.push('<button type="button" class="cald'+(k===tk?' today':'')+(k===sk?' sel':'')+'" data-k="'+k+'"><span class="dn">'+d+'</span>'+(n?'<span class="cnt">'+n+'</span>':'')+'</button>');
+    }
+    $('calGrid').innerHTML=cells.join('');
+  }
+  $('dateLabel').onclick=openCal;
+  $('calPrev').onclick=function(){calM--;if(calM<0){calM=11;calY--;}renderCal();};
+  $('calNext').onclick=function(){calM++;if(calM>11){calM=0;calY++;}renderCal();};
+  $('calToday').onclick=function(){closeSheets();goTo(new Date());};
+  $('calClose').onclick=closeSheets;
+  $('calGrid').onclick=function(e){var b=e.target.closest('.cald');if(b){closeSheets();goTo(fromKey(b.getAttribute('data-k')));}};
   $('chips').onclick=function(e){var b=e.target.closest('.daychip');if(b)goTo(fromKey(b.getAttribute('data-k')));};
   $('list').onclick=function(e){
     var ed=e.target.closest('[data-edit]');
@@ -555,7 +636,7 @@
     $('fTorik').checked=!!(p&&p.iol&&p.iol.torik);
     $('fTcyl').value=(p&&p.iol)?(p.iol.tcyl||''):'';
     $('fAks').value=(p&&p.iol)?(p.iol.aks||''):'';
-    $('torRow').style.display=$('fTorik').checked?'':'none';
+    $('torRow').style.display=$('fTorik').checked?'':'none';syncSigns();
     syncOther('fTaniSel','fTaniOther');syncOther('fCerSel','fCerOther');syncOther('fCer2Sel','fCer2Other');
     syncOther('fMarka','fMarkaOther');syncOther('fAsis','fAsisOther');
     hideSugs();
@@ -574,6 +655,26 @@
   $('segGoz').onclick=function(e){var b=e.target.closest('button');if(b){fGoz=b.getAttribute('data-v');renderSeg();}};
   $('segTip').onclick=function(e){var b=e.target.closest('button');if(b){fTip=b.getAttribute('data-v');renderSeg();}};
   $('fTorik').onchange=function(){$('torRow').style.display=this.checked?'':'none';if(this.checked)$('fTcyl').focus();};
+  function bindSign(segId,inpId){
+    var seg=$(segId),inp=$(inpId);
+    function sync(){
+      var v=inp.value.trim();
+      var s=v.charAt(0)==='-'?'-':(v.charAt(0)==='+'?'+':'');
+      var bs=seg.querySelectorAll('button');
+      for(var i=0;i<bs.length;i++)bs[i].classList.toggle('on',bs[i].getAttribute('data-v')===s);
+    }
+    seg.onclick=function(e){
+      var b=e.target.closest('button');if(!b)return;
+      var s=b.getAttribute('data-v');
+      var v=inp.value.trim().replace(/^[+\-−]/,'');
+      inp.value=s+v;
+      sync();
+    };
+    inp.addEventListener('input',sync);
+    seg._sync=sync;
+  }
+  bindSign('sgnDio','fDio');bindSign('sgnTcyl','fTcyl');
+  function syncSigns(){$('sgnDio')._sync();$('sgnTcyl')._sync();}
   $('fTaniSel').onchange=function(){syncOther('fTaniSel','fTaniOther');syncIol();if(this.value===OTHER)$('fTaniOther').focus();};
   $('fCerSel').onchange=function(){syncOther('fCerSel','fCerOther');syncIol();if(this.value===OTHER)$('fCerOther').focus();};
   $('fCer2Sel').onchange=function(){syncOther('fCer2Sel','fCer2Other');syncIol();if(this.value===OTHER)$('fCer2Other').focus();};
@@ -614,7 +715,7 @@
     var a=flatOpts(S.asistanlar,p.asis||'');$('fAsis').innerHTML=a.html;$('fAsisOther').value=a.other;
     $('fDio').value=(p.iol&&p.iol.dio)||'';$('fTorik').checked=!!(p.iol&&p.iol.torik);
     $('fTcyl').value=(p.iol&&p.iol.tcyl)||'';$('fAks').value=(p.iol&&p.iol.aks)||'';
-    $('torRow').style.display=$('fTorik').checked?'':'none';
+    $('torRow').style.display=$('fTorik').checked?'':'none';syncSigns();
     syncOther('fTaniSel','fTaniOther');syncOther('fCerSel','fCerOther');syncOther('fCer2Sel','fCer2Other');
     syncOther('fMarka','fMarkaOther');syncOther('fAsis','fAsisOther');
     syncIol();renderSeg();hideSugs();
@@ -671,14 +772,31 @@
   };
 
   function openSettings(){
+    $('sUnvan').value=HEKIM;
     $('sAsis').value=S.asistanlar.join('\n');
+    $('sTaniOnk').value=TANI['Oküler Onkoloji'].join('\n');
+    $('sTaniPla').value=TANI['Oküloplastik'].join('\n');
+    $('sTaniKat').value=TANI['Katarakt'].join('\n');
+    $('sCerOnk').value=CER['Oküler Onkoloji'].join('\n');
+    $('sCerPla').value=CER['Oküloplastik'].join('\n');
+    $('sCerKat').value=CER['Katarakt'].join('\n');
+    $('sMarka').value=MARKA.join('\n');
     var u=auth.currentUser;
     $('hesapBilgi').textContent=u?('Giriş: '+(u.email||u.displayName||'')):'';
     openSheet('sheetSettings');
   }
+  function lines(id){return $(id).value.split('\n').map(function(s){return s.trim();}).filter(Boolean);}
   $('sSave').onclick=function(){
-    S.asistanlar=$('sAsis').value.split('\n').map(function(s){return s.trim();}).filter(Boolean);
-    closeSheets();render();saveMeta();toast('Kodlar güncellendi');
+    var uv=$('sUnvan').value.trim();if(uv)HEKIM=uv;
+    var a=lines('sAsis');if(a.length)S.asistanlar=a;
+    var t1=lines('sTaniOnk');if(t1.length)TANI['Oküler Onkoloji']=t1;
+    var t2=lines('sTaniPla');if(t2.length)TANI['Oküloplastik']=t2;
+    var t3=lines('sTaniKat');if(t3.length)TANI['Katarakt']=t3;
+    var c1=lines('sCerOnk');if(c1.length)CER['Oküler Onkoloji']=c1;
+    var c2l=lines('sCerPla');if(c2l.length)CER['Oküloplastik']=c2l;
+    var c3=lines('sCerKat');if(c3.length)CER['Katarakt']=c3;
+    var mk=lines('sMarka');if(mk.length)MARKA=mk;
+    applyUnvan();closeSheets();render();saveMeta();toast('Ayarlar kaydedildi');
   };
   $('btnCikis').onclick=function(){closeSheets();auth.signOut();};
 
