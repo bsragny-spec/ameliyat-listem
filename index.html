@@ -130,6 +130,8 @@
   .iol{background:var(--teal-soft);border-radius:12px;padding:12px 12px 2px;margin-bottom:12px;display:none}
   .iol.show{display:block}
   .iol h4{margin:0 0 10px;font-size:13.5px;color:var(--teal);letter-spacing:.2px}
+  .yas{margin-top:8px}
+  .l2b.ucr{color:var(--muted)}
   .dio{display:flex;gap:8px;align-items:stretch}
   .dio .seg{flex:0 0 96px}
   .dio .seg button{font-size:18px;padding:8px 4px}
@@ -264,6 +266,7 @@
     </div>
     <div class="f"><label>Anestezi</label>
       <div class="seg an" id="segAn"><button type="button" data-v="Genel" class="genel">Genel</button><button type="button" data-v="Lokal" class="lokal">Lokal</button></div>
+      <input id="fYas" class="yas" autocomplete="off" placeholder="Yaş — örn. 5 veya 8 ay (genel anestezide gerekli)">
     </div>
   </div>
   <div class="f"><label for="fTaniSel">Tanı</label>
@@ -279,6 +282,7 @@
     <input id="fCer2Other" class="other" autocomplete="off" placeholder="İkinci cerrahiyi elle yazın">
   </div>
   <div class="f"><label for="fNot">Not (isteğe bağlı)</label><input id="fNot" autocomplete="off" placeholder="örn. temporal kesi"></div>
+  <div class="f"><label for="fUcret">Ücret — yalnız ekranda görünür, tabloya ve PDF'e girmez</label><input id="fUcret" autocomplete="off" inputmode="numeric" placeholder="örn. 45.000"></div>
   <div class="iol" id="iolBlock">
     <h4>Göz içi lens (GİL)</h4>
     <div class="row2">
@@ -468,6 +472,7 @@
   function fmtChip(d){return d.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});}
   function isToday(d){var t=new Date();t.setHours(0,0,0,0);return dk(d)===dk(t);}
   function cerText(p){return p.cer+(p.cer2?' & '+p.cer2:'');}
+  function anText(p){return p.an+(p.yas?(' · '+p.yas+(/^\d+$/.test(p.yas)?' y':'')):'');}
   function iolText(p){
     if(!p.iol)return '';
     var a=[];
@@ -515,9 +520,10 @@
         +'<div class="l2">'+(p.goz?'<span class="eye">'+esc(p.goz)+'</span> · ':'')+esc(p.tani)+'<span class="cer"> · '+esc(cerText(p))+'</span></div>'
         +(iol?'<div class="l2b"><b>GİL</b> '+esc(iol)+'</div>':'')
         +(p.not?'<div class="l2b"><b>Not</b> '+esc(p.not)+'</div>':'')
+        +(p.ucret?'<div class="l2b ucr"><b>Ücret</b> '+esc(p.ucret)+'</div>':'')
         +'<div class="l3"><span>Asistan <b>'+esc(p.asis||'—')+'</b></span>'+(p.tel?'<span>Tel <b>'+esc(p.tel)+'</b></span>':'')+'</div>'
       +'</div>'
-      +'<div class="side"><span class="chip '+an+'">'+esc(p.an)+'</span>'
+      +'<div class="side"><span class="chip '+an+'">'+esc(anText(p))+'</span>'
         +'<div class="mv">'
         +'<button type="button" class="edit" data-edit="'+p.id+'" aria-label="Düzenle">'+PEN+'</button>'
         +'<button type="button" data-mv="-1" data-id="'+p.id+'"'+(i===0?' disabled':'')+' aria-label="Yukarı taşı">'+UP+'</button>'
@@ -528,7 +534,7 @@
     var cols='<tr><th class="c">No</th><th>Adı Soyadı</th><th>TC Kimlik No</th><th>Telefon</th><th class="c">Göz</th><th>Tanı</th><th>Cerrahi</th><th>Anestezi</th><th>Asistan</th></tr>';
     var rows=L.length?L.map(function(p,i){
       var iol=iolText(p);
-      return '<tr><td class="c">'+(i+1)+'</td><td>'+esc(p.ad)+'</td><td>'+esc(p.tc)+'</td><td>'+esc(p.tel)+'</td><td class="c">'+esc(p.goz)+'</td><td>'+esc(p.tani)+'</td><td>'+esc(cerText(p))+(iol?'<div class="gil">GİL: '+esc(iol)+'</div>':'')+(p.not?'<div class="gil">Not: '+esc(p.not)+'</div>':'')+'</td><td>'+esc(p.an)+'</td><td>'+esc(p.asis)+'</td></tr>';
+      return '<tr><td class="c">'+(i+1)+'</td><td>'+esc(p.ad)+'</td><td>'+esc(p.tc)+'</td><td>'+esc(p.tel)+'</td><td class="c">'+esc(p.goz)+'</td><td>'+esc(p.tani)+'</td><td>'+esc(cerText(p))+(iol?'<div class="gil">GİL: '+esc(iol)+'</div>':'')+(p.not?'<div class="gil">Not: '+esc(p.not)+'</div>':'')+'</td><td>'+esc(anText(p))+'</td><td>'+esc(p.asis)+'</td></tr>';
     }).join(''):'<tr><td colspan="9" class="none">Hasta yok</td></tr>';
     return '<div class="paper">'
       +'<div class="paperbar noprint"><span>Yazdırma düzeni (A4 yatay)</span><button class="btn sec sm" id="btnPrint" type="button">Yazdır / PDF</button></div>'
@@ -623,10 +629,11 @@
   function openForm(id){
     var f=id!=null?findRec(id):null;var p=f?f.rec:null;
     editId=p?p.id:null;fAn=p?p.an:'Lokal';fGoz=p?(p.goz||''):'';
+    $('fYas').value=p?(p.yas||''):'';
     fTip=(p&&p.iol&&p.iol.tip)||'Monofokal';
     $('fTitle').textContent=p?'Hastayı düzenle':'Hasta ekle';
     $('fDate').value=f?f.key:dk(S.date);
-    $('fAd').value=p?p.ad:'';$('fTc').value=p?p.tc:'';$('fTel').value=p?p.tel:'';$('fNot').value=p?(p.not||''):'';
+    $('fAd').value=p?p.ad:'';$('fTc').value=p?p.tc:'';$('fTel').value=p?p.tel:'';$('fNot').value=p?(p.not||''):'';$('fUcret').value=p?(p.ucret||''):'';
     var t=groupOpts(TANI,p?p.tani:'');$('fTaniSel').innerHTML=t.html;$('fTaniOther').value=t.other;
     var c=groupOpts(CER,p?p.cer:'');$('fCerSel').innerHTML=c.html;$('fCerOther').value=c.other;
     var c2=groupOpts(CER,p?(p.cer2||''):'','—');$('fCer2Sel').innerHTML=c2.html;$('fCer2Other').value=c2.other;
@@ -706,7 +713,7 @@
   }
   function fillFrom(id){
     var f=findRec(id);if(!f)return;var p=f.rec;
-    $('fAd').value=p.ad;$('fTc').value=p.tc||'';$('fTel').value=p.tel||'';$('fNot').value=p.not||'';
+    $('fAd').value=p.ad;$('fTc').value=p.tc||'';$('fTel').value=p.tel||'';$('fNot').value=p.not||'';$('fYas').value=p.yas||'';
     fAn=p.an||'Lokal';fGoz='';fTip=(p.iol&&p.iol.tip)||'Monofokal';
     var t=groupOpts(TANI,p.tani);$('fTaniSel').innerHTML=t.html;$('fTaniOther').value=t.other;
     var c=groupOpts(CER,p.cer);$('fCerSel').innerHTML=c.html;$('fCerOther').value=c.other;
@@ -735,6 +742,8 @@
     var ad=$('fAd').value.trim();
     if(!ad){$('fAd').focus();toast('Ad soyad gerekli');return;}
     if(!fGoz){toast('Göz tarafını seçin (OD/OS/OU)');return;}
+    var yas=$('fYas').value.trim();
+    if(fAn==='Genel'&&!yas){toast('Genel anestezi için yaş girin');$('fYas').focus();return;}
     var tani=pick('fTaniSel','fTaniOther');
     if(!tani){toast('Tanı seçin veya yazın');return;}
     var cer=pick('fCerSel','fCerOther');
@@ -751,7 +760,7 @@
       iol={dio:$('fDio').value.trim(),tip:fTip,marka:pick('fMarka','fMarkaOther'),torik:torik,tcyl:tcyl,aks:aks};
     }
     var d=fromKey(dstr);
-    var rec={ad:ad,tc:tc,tel:$('fTel').value.trim(),goz:fGoz,tani:tani,cer:cer,cer2:cer2,not:$('fNot').value.trim(),an:fAn,hoca:HEKIM,asis:pick('fAsis','fAsisOther'),iol:iol};
+    var rec={ad:ad,tc:tc,tel:$('fTel').value.trim(),goz:fGoz,tani:tani,cer:cer,cer2:cer2,not:$('fNot').value.trim(),ucret:$('fUcret').value.trim(),an:fAn,yas:yas,hoca:HEKIM,asis:pick('fAsis','fAsisOther'),iol:iol};
     var msg,oldKey=null;
     if(editId!=null){
       var f=findRec(editId);
@@ -818,7 +827,7 @@
     doc.text(fmtLong(S.date)+' '+fmtDay(S.date),148.5,20,{align:'center'});
     var body=L.map(function(p,i){
       var iol=iolText(p);
-      return [String(i+1),p.ad,p.tc||'',p.tel||'',p.goz||'',p.tani,cerText(p)+(iol?'\nGİL: '+iol:'')+(p.not?'\nNot: '+p.not:''),p.an,p.asis||''];
+      return [String(i+1),p.ad,p.tc||'',p.tel||'',p.goz||'',p.tani,cerText(p)+(iol?'\nGİL: '+iol:'')+(p.not?'\nNot: '+p.not:''),anText(p),p.asis||''];
     });
     if(!body.length)body=[['','Hasta yok','','','','','','','']];
     doc.autoTable({
