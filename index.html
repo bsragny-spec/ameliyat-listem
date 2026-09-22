@@ -472,7 +472,7 @@
   function fmtChip(d){return d.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});}
   function isToday(d){var t=new Date();t.setHours(0,0,0,0);return dk(d)===dk(t);}
   function cerText(p){return p.cer+(p.cer2?' & '+p.cer2:'');}
-  function anText(p){return p.an+(p.yas?(' · '+p.yas+(/^\d+$/.test(p.yas)?' y':'')):'');}
+  function adText(p){return p.ad+(p.yas?(' ('+p.yas+(/^\d+$/.test(p.yas)?' y':'')+')'):'');}
   function iolText(p){
     if(!p.iol)return '';
     var a=[];
@@ -516,14 +516,14 @@
     return '<div class="card '+an+'" data-id="'+p.id+'" role="button" tabindex="0">'
       +'<div class="num">'+(i+1)+'</div>'
       +'<div class="body">'
-        +'<div class="name">'+esc(p.ad)+(p.tc?'<span class="pno">TC '+esc(p.tc)+'</span>':'')+'</div>'
+        +'<div class="name">'+esc(adText(p))+(p.tc?'<span class="pno">TC '+esc(p.tc)+'</span>':'')+'</div>'
         +'<div class="l2">'+(p.goz?'<span class="eye">'+esc(p.goz)+'</span> · ':'')+esc(p.tani)+'<span class="cer"> · '+esc(cerText(p))+'</span></div>'
         +(iol?'<div class="l2b"><b>GİL</b> '+esc(iol)+'</div>':'')
         +(p.not?'<div class="l2b"><b>Not</b> '+esc(p.not)+'</div>':'')
         +(p.ucret?'<div class="l2b ucr"><b>Ücret</b> '+esc(p.ucret)+'</div>':'')
         +'<div class="l3"><span>Asistan <b>'+esc(p.asis||'—')+'</b></span>'+(p.tel?'<span>Tel <b>'+esc(p.tel)+'</b></span>':'')+'</div>'
       +'</div>'
-      +'<div class="side"><span class="chip '+an+'">'+esc(anText(p))+'</span>'
+      +'<div class="side"><span class="chip '+an+'">'+esc(p.an)+'</span>'
         +'<div class="mv">'
         +'<button type="button" class="edit" data-edit="'+p.id+'" aria-label="Düzenle">'+PEN+'</button>'
         +'<button type="button" data-mv="-1" data-id="'+p.id+'"'+(i===0?' disabled':'')+' aria-label="Yukarı taşı">'+UP+'</button>'
@@ -534,7 +534,7 @@
     var cols='<tr><th class="c">No</th><th>Adı Soyadı</th><th>TC Kimlik No</th><th>Telefon</th><th class="c">Göz</th><th>Tanı</th><th>Cerrahi</th><th>Anestezi</th><th>Asistan</th></tr>';
     var rows=L.length?L.map(function(p,i){
       var iol=iolText(p);
-      return '<tr><td class="c">'+(i+1)+'</td><td>'+esc(p.ad)+'</td><td>'+esc(p.tc)+'</td><td>'+esc(p.tel)+'</td><td class="c">'+esc(p.goz)+'</td><td>'+esc(p.tani)+'</td><td>'+esc(cerText(p))+(iol?'<div class="gil">GİL: '+esc(iol)+'</div>':'')+(p.not?'<div class="gil">Not: '+esc(p.not)+'</div>':'')+'</td><td>'+esc(anText(p))+'</td><td>'+esc(p.asis)+'</td></tr>';
+      return '<tr><td class="c">'+(i+1)+'</td><td>'+esc(adText(p))+'</td><td>'+esc(p.tc)+'</td><td>'+esc(p.tel)+'</td><td class="c">'+esc(p.goz)+'</td><td>'+esc(p.tani)+'</td><td>'+esc(cerText(p))+(iol?'<div class="gil">GİL: '+esc(iol)+'</div>':'')+(p.not?'<div class="gil">Not: '+esc(p.not)+'</div>':'')+'</td><td>'+esc(p.an)+'</td><td>'+esc(p.asis)+'</td></tr>';
     }).join(''):'<tr><td colspan="9" class="none">Hasta yok</td></tr>';
     return '<div class="paper">'
       +'<div class="paperbar noprint"><span>Yazdırma düzeni (A4 yatay)</span><button class="btn sec sm" id="btnPrint" type="button">Yazdır / PDF</button></div>'
@@ -827,7 +827,7 @@
     doc.text(fmtLong(S.date)+' '+fmtDay(S.date),148.5,20,{align:'center'});
     var body=L.map(function(p,i){
       var iol=iolText(p);
-      return [String(i+1),p.ad,p.tc||'',p.tel||'',p.goz||'',p.tani,cerText(p)+(iol?'\nGİL: '+iol:'')+(p.not?'\nNot: '+p.not:''),anText(p),p.asis||''];
+      return [String(i+1),adText(p),p.tc||'',p.tel||'',p.goz||'',p.tani,cerText(p)+(iol?'\nGİL: '+iol:'')+(p.not?'\nNot: '+p.not:''),p.an,p.asis||''];
     });
     if(!body.length)body=[['','Hasta yok','','','','','','','']];
     doc.autoTable({
