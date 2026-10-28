@@ -399,12 +399,44 @@
 
   function gunlerCol(){return db.collection('users').doc(UID).collection('gunler');}
   function metaRef(){return db.collection('users').doc(UID).collection('meta').doc('ayarlar');}
+  var BASE={},unsubDays=null,repaired=false;
+  function clone(a){return JSON.parse(JSON.stringify(a||[]));}
+  function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
+  function byId(a){var m={};(a||[]).forEach(function(r){m[r.id]=r;});return m;}
+  /* uc yonlu birlestirme: B=son bilinen sunucu, L=bu cihaz, Sv=sunucunun simdiki hali */
+  function merge3(B,L,Sv){
+    var b=byId(B),l=byId(L),s=byId(Sv),out=[],used={};
+    (L||[]).forEach(function(r){
+      var id=r.id;
+      if(!s[id]&&b[id]&&same(b[id],r))return;           /* baska cihazda silinmis/tasinmis */
+      var v=r;
+      if(s[id]&&b[id]&&same(b[id],r)&&!same(s[id],r))v=s[id]; /* sadece baska cihazda degismis */
+      out.push(v);used[id]=1;
+    });
+    (Sv||[]).forEach(function(r){
+      if(used[r.id])return;
+      if(b[r.id]&&!l[r.id])return;                        /* bu cihazda silinmis/tasinmis */
+      out.push(r);used[r.id]=1;                           /* baska cihazda eklenmis */
+    });
+    return out;
+  }
+  function repairIds(){
+    var seen={};
+    Object.keys(S.data).sort().forEach(function(k){
+      var ch=false;
+      (S.data[k]||[]).forEach(function(r){
+        if(r.id==null||seen[r.id]){r.id=newId();ch=true;}
+        seen[r.id]=1;
+      });
+      if(ch)saveDay(k);
+    });
+  }
   function loadAll(){
-    Promise.all([gunlerCol().get(),metaRef().get()]).then(function(res){
-      S.data={};
-      res[0].forEach(function(doc){S.data[doc.id]=doc.data().h||[];});
-      if(res[1].exists){
-        var m=res[1].data();
+    S.data={};BASE={};repaired=false;
+    if(unsubDays){unsubDays();unsubDays=null;}
+    metaRef().get().then(function(ms){
+      if(ms.exists){
+        var m=ms.data();
         if(m.asistanlar&&m.asistanlar.length)S.asistanlar=m.asistanlar;
         if(m.seq)seq=m.seq;
         if(m.unvan)HEKIM=m.unvan;
@@ -412,24 +444,39 @@
         if(m.cer)Object.keys(CER).forEach(function(g){if(m.cer[g]&&m.cer[g].length)CER[g]=m.cer[g];});
         if(m.marka&&m.marka.length)MARKA=m.marka;
       }
-      var seen={};
-      Object.keys(S.data).sort().forEach(function(k){
-        var ch=false;
-        (S.data[k]||[]).forEach(function(r){
-          if(r.id==null||seen[r.id]){r.id=newId();ch=true;}
-          seen[r.id]=1;
-        });
-        if(ch)saveDay(k);
+      applyUnvan();render();
+    }).catch(function(){});
+    unsubDays=gunlerCol().onSnapshot(function(snap){
+      snap.docChanges().forEach(function(c){
+        var k=c.doc.id;
+        if(c.doc.metadata.hasPendingWrites)return;
+        if(c.type==='removed'){delete S.data[k];delete BASE[k];}
+        else{var h=c.doc.data().h||[];S.data[k]=clone(h);BASE[k]=clone(h);}
       });
-      applyUnvan();
+      if(!repaired){repaired=true;repairIds();}
       render();
-    }).catch(function(e){toast('Veriler yüklenemedi');render();});
+    },function(){toast('Veriler yüklenemedi');render();});
   }
   function saveDay(k){
     if(!UID)return;
-    var L=S.data[k]||[];
-    var p=L.length?gunlerCol().doc(k).set({h:L}):gunlerCol().doc(k).delete();
-    p.catch(function(){toast('Kaydedilemedi — bağlantıyı kontrol edin');});
+    var ref=gunlerCol().doc(k);
+    var local=clone(S.data[k]),base=clone(BASE[k]);
+    db.runTransaction(function(tx){
+      return tx.get(ref).then(function(sn){
+        var server=sn.exists?(sn.data().h||[]):[];
+        var m=merge3(base,local,server);
+        if(m.length)tx.set(ref,{h:m});else tx.delete(ref);
+        return m;
+      });
+    }).then(function(m){
+      BASE[k]=clone(m);
+      if(!same(m,S.data[k])){S.data[k]=clone(m);render();}
+    }).catch(function(){
+      /* cevrimdisi: kuyruga yaz, baglaninca gider */
+      var L=S.data[k]||[];
+      (L.length?ref.set({h:L}):ref.delete()).catch(function(){toast('Kaydedilemedi — bağlantıyı kontrol edin');});
+      BASE[k]=clone(L);
+    });
   }
   function saveMeta(){
     if(!UID)return;
@@ -467,7 +514,7 @@
   document.getElementById('lgPass').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('btnGiris').click();});
   auth.onAuthStateChanged(function(u){
     if(u){UID=u.uid;document.getElementById('login').classList.remove('show');loadAll();}
-    else{UID=null;S.data={};document.getElementById('login').classList.add('show');render();}
+    else{UID=null;if(unsubDays){unsubDays();unsubDays=null;}S.data={};BASE={};document.getElementById('login').classList.add('show');render();}
   });
 
   function dk(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
