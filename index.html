@@ -380,7 +380,8 @@
     data:{}
   };
   S.date.setHours(0,0,0,0);
-  var seq=1;
+  var seq=1,idn=0;
+  function newId(){return Date.now()*100+(idn++)%100;}
 
   /* ---- Firebase ---- */
   var cfg={
@@ -411,6 +412,15 @@
         if(m.cer)Object.keys(CER).forEach(function(g){if(m.cer[g]&&m.cer[g].length)CER[g]=m.cer[g];});
         if(m.marka&&m.marka.length)MARKA=m.marka;
       }
+      var seen={};
+      Object.keys(S.data).sort().forEach(function(k){
+        var ch=false;
+        (S.data[k]||[]).forEach(function(r){
+          if(r.id==null||seen[r.id]){r.id=newId();ch=true;}
+          seen[r.id]=1;
+        });
+        if(ch)saveDay(k);
+      });
       applyUnvan();
       render();
     }).catch(function(e){toast('Veriler yüklenemedi');render();});
@@ -621,8 +631,10 @@
   }
   function syncIol(){$('iolBlock').classList.toggle('show',inKatarakt());}
   function findRec(id){
-    var ks=Object.keys(S.data);
-    for(var i=0;i<ks.length;i++){var L=S.data[ks[i]];
+    var ck=dk(S.date),CL=S.data[ck]||[];
+    for(var c=0;c<CL.length;c++)if(CL[c].id===id)return{key:ck,idx:c,rec:CL[c]};
+    var ks=Object.keys(S.data).sort().reverse();
+    for(var i=0;i<ks.length;i++){if(ks[i]===ck)continue;var L=S.data[ks[i]];
       for(var j=0;j<L.length;j++)if(L[j].id===id)return{key:ks[i],idx:j,rec:L[j]};}
     return null;
   }
@@ -767,7 +779,7 @@
       if(f&&f.key===dstr){Object.assign(f.rec,rec);}
       else if(f){oldKey=f.key;S.data[f.key].splice(f.idx,1);Object.assign(f.rec,rec);dayList(d).push(f.rec);}
       msg='Kaydedildi';
-    }else{rec.id=seq++;dayList(d).push(rec);msg='Hasta eklendi';}
+    }else{rec.id=newId();dayList(d).push(rec);msg='Hasta eklendi';}
     closeSheets();goTo(d);
     saveDay(dstr);if(oldKey)saveDay(oldKey);saveMeta();
     toast(msg);
